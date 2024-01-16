@@ -36,7 +36,6 @@ for file in few_show_files:
         mover = np.mean(scores)
         y = {"BLEU": bleu, "MoverScore": mover}
         fewdata.update(y)
-        print(y)
         filefw.write(json.dumps(fewdata, ensure_ascii=False) + "\n")
     filefw.close()
 

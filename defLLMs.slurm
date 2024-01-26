@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Test_LLMs
+#SBATCH --job-name=Def_LLMs
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -14,10 +14,11 @@ echo "Proben hasieran"
 
 echo "ZeroShot"
 
-echo "Mixtral"
-srun python defLLMs.py modeloak/Mixtral-8x7B-Instruct-v0.1 ModelsOutputs/ZeroShot/Mixtral.json Zero
+
 echo "Mistral1"
 srun python defLLMs.py modeloak/Mistral-7B-Instruct-v0.1 ModelsOutputs/ZeroShot/Mistral1.json Zero
+echo "Mixtral"
+srun python defLLMs.py modeloak/Mixtral-8x7B-Instruct-v0.1 ModelsOutputs/ZeroShot/Mixtral.json Zero
 echo "Mistral2"
 srun python defLLMs.py modeloak/Mistral-7B-Instruct-v0.2 ModelsOutputs/ZeroShot/Mistral2.json Zero
 echo "ZephyrA"

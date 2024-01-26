@@ -15,8 +15,6 @@ def random_line(fname):
 def generateExampleWithDef(words, definitions, pipeline, tokenizer, zeph, fewShot):
     prompts = []
     outputs = []
-    definizioa = "'" + definition + "'"
-    hitza = "'" + word + "'"
     for i in range(len(words)):
         word = words[i]
         definition = definitions[i]
@@ -63,12 +61,11 @@ def generateExampleWithDef(words, definitions, pipeline, tokenizer, zeph, fewSho
 
 def testModels(words, definitions, examples, POS, pipeline, tokenizer, sb, file, zeph, fewShot):
     
-    hitza = "'" + word + "'"
-    adibideak = ""
     prompts = []
     for i in range(len(words)):
         example = examples[i]
         word = words[i]
+        hitza = "'" + word + "'"
         definizioa = definitions[i]
         adibideak = "'" + example + "', "
         
@@ -79,7 +76,7 @@ def testModels(words, definitions, examples, POS, pipeline, tokenizer, sb, file,
                 few3 = "<|assistant|>\nThe land alongside or sloping down to a river or lake.\n"
                 few4 = "<|user|>\nGiving the word 'tire' and the sense of this example: 'the training tired us out', generate the definition of the word in this sense.</s>\n"
                 few5 = "<|assistant|>\nFeel or cause to feel in need of rest or sleep.\n"
-                few6 = "<|user|>\nGiving the word " + hitza + " and the sense of these examples: " + adibideak + "generate the definition of the word in this sense. Give JUST the definition not further explanation. </s>\n<|assistant|>\n"
+                few6 = "<|user|>\nGiving the word " + hitza + " and the sense of these examples: " + adibideak + "generate the definition of the word in this sense.</s>\n<|assistant|>\n"
                 prompt = few1 + few2 + few3 + few4 + few5 + few6
             else:
                 lehenZatia = "<|system|>\nYou are an expert English lexicographer, generate a dictionary definition of a word given some example sentences of the word. Please, JUST provide the definition, not further explanation. </s>\n"

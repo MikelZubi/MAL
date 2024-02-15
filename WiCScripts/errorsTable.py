@@ -68,17 +68,11 @@ pathOut = sys.argv[2]
 csvfile = open(pathOut, "w")
 csvwriter = csv.writer(csvfile)
 csvwriter.writerow(["Type", "FP", "FN", "Accuracy"])
-dirs = [dir for dir in os.listdir("WiCOutputs") if os.path.isdir(os.path.join("WiCOutputs", dir))]
-dirs.sort()
+dirs = [dir for dir in os.listdir("WiCOutputs") if os.path.isdir(os.path.join("WiCOutputs", dir)) and dir != "OnlyExamples"]
+dirs.sort(key= lambda x: int(x.split("S")[0]))
 for dir in dirs:
     modelIn = False
     path = os.path.join("WiCOutputs", dir)
-    for file in os.listdir(path):
-        if modelname in file:
-            modelIn = True
-            break
-    if not modelIn:
-        continue
     filenameDev = path + "/" + modelname + "_dev.json"
     svmModel = calculateThrshold(filenameDev)
     filenameTest = path + "/" +modelname + "_test.json"

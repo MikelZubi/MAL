@@ -1,4 +1,0 @@
-{"Mistral":{"type":"Instruct", "prompt":{"inst_start": "<s> [INST] ", "inst_end": " [/INST] ", "response_start": "", "response_end": " <\\s>"}},
-"Zephyr":{"type":"Chat", "prompt":{"init_start":"<|system|>\n", "init_end":" </s>\n","user_start":"<|user|>\n", "user_end":" </s>\n", "response_start":"<|assistant|>\n", "response_end":"\n"}},
-"Llama2": {"type":"Chat", "prompt":{}}
-}

@@ -35,7 +35,7 @@ def testModels(word, definizioa, examples, POS, pipeline, tokenizer, sb, file, m
         top_k=10,
         num_return_sequences=1,
         eos_token_id=tokenizer.eos_token_id,
-        max_length=1000,
+        max_new_tokens=140,
         batch_size=len(prompts),
         truncation=True
     )

@@ -7,8 +7,8 @@ import json
 import sys
 from tqdm import tqdm
 from sklearn import svm
-import time
-from generatePrompt import generate_prompt
+from generatePrompt import generate_promptV2
+import os
 
 
 
@@ -20,15 +20,15 @@ def random_line(fname):
 def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file, modelname, few):
     
     
-    prompt1 = generate_prompt(modelname,word,example1,few)
-    prompt2 = generate_prompt(modelname,word,example2,few)        
+    prompt1 = generate_promptV2(modelname,tokenizer,word,example1,few)
+    prompt2 = generate_promptV2(modelname,tokenizer,word,example2,few)        
     sequences = pipeline(
         [prompt1,prompt2],
         do_sample=True,
         top_k=10,
         num_return_sequences=1,
         eos_token_id=tokenizer.eos_token_id,
-        max_length=1000,
+        max_new_tokens=140,
         batch_size = 2
     )
 
@@ -124,10 +124,13 @@ def estimate(path, regr):
 
 if __name__ == "__main__":
     rd.seed(16)
-    model = sys.argv[1]
-    filename = sys.argv[2]
-    modelname = sys.argv[3]
-    k = int(sys.argv[4])
+    modelname = sys.argv[1]
+    k = int(sys.argv[2])
+    with open("modelsData.json", "r") as jsonfile:
+        modelsdata = json.load(jsonfile)
+        modelpath = modelsdata[modelname]["path"]
+    filename = "WiCOutputs/" + str(k) + "Shot+Exp/" + modelname + ".json"
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     few = {}
     few["k"] = k
     few["words"] = []
@@ -148,7 +151,7 @@ if __name__ == "__main__":
         definizioa = dataR["definition"]
         few["words"].append(word)
         few["definitions"].append(definizioa)
-        few["examples"].append(examples[0])
+        few["examples"].append(examples)
         oxford.remove(line)
     words = []
     sentences1 = []
@@ -164,21 +167,18 @@ if __name__ == "__main__":
         sentences2.append(data["sentence2"])
         POSs.append(data["POS"])
         tags.append(gold[i])
-    if "zephyr" in model:
-        zephyr = True
-    else:
-        zephyr = False
     filenameDev = filename[:-5] + "_dev.json"
     filenameTest = filename[:-5] + "_test.json"
     filenameResult = filename[:-5] + "_result.txt"
-    tokenizer = AutoTokenizer.from_pretrained(model)
-    sb = SentenceTransformer('modeloak/all-mpnet-base-v2')
+    tokenizer = AutoTokenizer.from_pretrained(modelpath)
+    sb = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     pipeline = transformers.pipeline(
         "text-generation",
-        model=model,
+        model=modelpath,
         torch_dtype=torch.bfloat16,
         device_map="auto",
     )
+    pipeline.tokenizer.pad_token_id = pipeline.model.config.eos_token_id # Hack to fix a bug in transformers (batch_size)
     useModels(pipeline,tokenizer,sb,filenameDev,words,sentences1,sentences2,POSs,tags,modelname,few)
     regr = calculateThrshold(filenameDev)
     WiC = open("WiC/test/test.data.txt","r").read().splitlines()

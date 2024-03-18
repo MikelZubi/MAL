@@ -2,7 +2,7 @@ import json
 
 #Few False or a dictionary with k, words, examples and definitions to do the few-shot prompt.
 def generate_prompt(modelname, word, example, few = {"k":0}):
-    f = open('ModelsPrompts.json')
+    f = open('modelsData.json')
     data = json.load(f)[modelname]
     if data["type"] == "Instruct":
         init = ""
@@ -26,8 +26,8 @@ def generate_prompt(modelname, word, example, few = {"k":0}):
 
 
 
-def generate_promptV2(tokenizer, modelname,word, example, few = {"k":0}):
-    f = open('ModelsPrompts.json')
+def generate_promptV2(modelname,tokenizer,word, example, few = {"k":0}):
+    f = open('modelsData.json')
     data = json.load(f)[modelname]
     if data["type"] == "Instruct":
         chat = []

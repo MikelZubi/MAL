@@ -15,16 +15,23 @@ def calculateThrshold(file_path):
     with open(file_path, "r") as file:
         for line in file:
             data = json.loads(line)
+            if not isinstance(data["cosine"], list):
+                value = [data["cosine"]]
+            else:
+                value = data["cosine"]
             if data["tag"] == "T":
-                all_score.append([data["cosine"]])
+                all_score.append(value)
                 label_all.append(tvalue)
             else:
-                all_score.append([data["cosine"]])
+                all_score.append(value)
                 label_all.append(fvalue)
                 
             
 
     regr = svm.SVC()
+    if len(all_score) == 0:
+        print(file_path)
+        return regr
     regr.fit(all_score,label_all)
     return regr
 
@@ -42,11 +49,15 @@ def estimate(path, regr):
         for line in file:
             data = json.loads(line)
             all_data.append(data)
+            if not isinstance(data["cosine"], list):
+                value = [data["cosine"]]
+            else:
+                value = data["cosine"]
             if data["tag"] == "T":
-                all_score.append([data["cosine"]])
+                all_score.append(value)
                 label_all.append(tvalue)
             else:
-                all_score.append([data["cosine"]])
+                all_score.append(value)
                 label_all.append(fvalue)
                 
     fp = 0.0
@@ -71,9 +82,10 @@ csvwriter.writerow(["Type", "FP", "FN", "Accuracy"])
 dirs = [dir for dir in os.listdir("WiCOutputs") if os.path.isdir(os.path.join("WiCOutputs", dir)) and dir != "OnlyExamples"]
 dirs.sort(key= lambda x: int(x.split("S")[0]))
 for dir in dirs:
-    modelIn = False
     path = os.path.join("WiCOutputs", dir)
     filenameDev = path + "/" + modelname + "_dev.json"
+    if not os.path.exists(filenameDev):
+        continue
     svmModel = calculateThrshold(filenameDev)
     filenameTest = path + "/" +modelname + "_test.json"
     fn, fp, accu = estimate(filenameTest, svmModel)

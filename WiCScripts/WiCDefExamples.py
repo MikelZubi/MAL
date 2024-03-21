@@ -42,8 +42,6 @@ def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file
     defexample2 = "Word: " + word + "\nDefinition: " + def2 + "\nExample: " + example2
     embeddings1 = sb.encode(defexample1, convert_to_tensor=True)
     embeddings2 = sb.encode(defexample2, convert_to_tensor=True)
-    embeddings1 = sb.encode(def1, convert_to_tensor=True)
-    embeddings2 = sb.encode(def2, convert_to_tensor=True)
     cosine_score = util.cos_sim(embeddings1, embeddings2)[0][0].item()
     dictionary = {"word": word, "POS": POS, "sentence1": example1, "sentence2": example2, "def1": def1 , "def2": def2, "cosine": cosine_score, "tag": tag}
     file.write(json.dumps(dictionary, ensure_ascii=False) + "\n")

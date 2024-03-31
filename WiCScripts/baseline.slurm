@@ -12,6 +12,5 @@ source ~/inguruneak/GRAL/bin/activate
 
 
 echo "Sentence Bert"
-srun python WiCScripts/WiCExamples.py WiCOutputs/OnlyExamples/SB.json
-
+srun python WiCScripts/baseline.py
 

@@ -11,6 +11,6 @@
 source ~/inguruneak/GRAL/bin/activate
 
 
-srun python WiCScripts/examplesDefWiC.py Zephyr 8 0
-srun python WiCScripts/examplesDefWiC.py Zephyr 8 1
-srun python WiCScripts/examplesDefWiC.py Zephyr 8 2
+srun python WiCScripts/examplesDefWiC.py Zephyr 4 1
+srun python WiCScripts/examplesDefWiC.py Zephyr 4 2
+srun python WiCScripts/examplesDefWiC.py Zephyr 4 3

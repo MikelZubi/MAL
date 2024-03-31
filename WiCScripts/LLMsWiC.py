@@ -6,9 +6,10 @@ import random as rd
 import json 
 import sys
 from tqdm import tqdm
-from sklearn import svm
+from sklearn.metrics import precision_recall_curve, accuracy_score
 from generatePrompt import generate_promptV2
 import os
+import numpy as np
 
 
 
@@ -17,11 +18,10 @@ def random_line(fname):
     return rd.choice(lines)
 
 
-def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file, modelname, few):
-    
-    
-    prompt1 = generate_promptV2(modelname,tokenizer,word,example1,few)
-    prompt2 = generate_promptV2(modelname,tokenizer,word,example2,few)        
+def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file, modelname, fewN, fewV):
+
+    prompt1 = generate_promptV2(modelname,tokenizer,word,example1, POS, fewN, fewV)
+    prompt2 = generate_promptV2(modelname,tokenizer,word,example2, POS, fewN, fewV)        
     sequences = pipeline(
         [prompt1,prompt2],
         do_sample=True,
@@ -40,16 +40,21 @@ def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file
     def2 = output2[len(prompt2):]
     embeddings1 = sb.encode(def1, convert_to_tensor=True)
     embeddings2 = sb.encode(def2, convert_to_tensor=True)
-    cosine_score = util.cos_sim(embeddings1, embeddings2)[0][0].item()
-    dictionary = {"word": word, "POS": POS, "sentence1": example1, "sentence2": example2, "def1": def1 , "def2": def2, "cosine": cosine_score, "tag": tag}
+    defexample1 = "Word: " + word + "\nDefinition: " + def1 + "\nExample: " + example1
+    defexample2 = "Word: " + word + "\nDefinition: " + def2 + "\nExample: " + example2
+    embeddingsE1 = sb.encode(defexample1, convert_to_tensor=True)
+    embeddingsE2 = sb.encode(defexample2, convert_to_tensor=True)
+    dot_score = util.dot_score(embeddings1, embeddings2)[0][0].item()
+    dot_scoreE = util.dot_score(embeddingsE1, embeddingsE2)[0][0].item()
+    dictionary = {"word": word, "POS": POS, "sentence1": example1, "sentence2": example2, "def1": def1 , "def2": def2, "dot": dot_score, "dotE": dot_scoreE, "tag": tag}
     file.write(json.dumps(dictionary, ensure_ascii=False) + "\n")
 
 
-def useModels(pipeline,tokenizer,sb,filename,words,sentences1,sentences2,POSs,tags,modelname,few):
+def useModels(pipeline,tokenizer,sb,filename,words,sentences1,sentences2,POSs,tags,modelname,fewN, fewV):
 
     file = open(filename, "w",encoding='utf-8')
     for i in tqdm(range(len(words))):
-        testModels(words[i], sentences1[i], sentences2[i], POSs[i], tags[i], pipeline, tokenizer, sb, file, modelname, few)
+        testModels(words[i], sentences1[i], sentences2[i], POSs[i], tags[i], pipeline, tokenizer, sb, file, modelname, fewN, fewV)
     file.close()
 
 def processWiC(line):
@@ -61,7 +66,7 @@ def processWiC(line):
     lineDic["sentence2"] = line[4]
     return lineDic 
 
-def calculateThrshold(path):
+def calculateThrshold(path, key):
 
     file_path = path
 
@@ -75,19 +80,24 @@ def calculateThrshold(path):
         for line in file:
             data = json.loads(line)
             if data["tag"] == "T":
-                all_score.append([data["cosine"]])
+                all_score.append([data[key]])
                 label_all.append(tvalue)
             else:
-                all_score.append([data["cosine"]])
+                all_score.append([data[key]])
                 label_all.append(fvalue)
                 
             
 
-    regr = svm.SVC()
-    regr.fit(all_score,label_all)
-    return regr
+    _, _, thresholds  = precision_recall_curve(label_all, all_score)
+    accuracy_scores = []
+    for thresh in thresholds:
+        accuracy_scores.append(accuracy_score(label_all, [m > thresh for m in all_score]))
 
-def estimate(path, regr):
+    accuracies = np.array(accuracy_scores)
+    max_accuracy_threshold =  thresholds[accuracies.argmax()]
+    return max_accuracy_threshold
+
+def estimate(path, thresh, key):
     file_path = path
 
 
@@ -100,21 +110,14 @@ def estimate(path, regr):
         for line in file:
             data = json.loads(line)
             if data["tag"] == "T":
-                all_score.append([data["cosine"]])
+                all_score.append([data[key]])
                 label_all.append(tvalue)
             else:
-                all_score.append([data["cosine"]])
+                all_score.append([data[key]])
                 label_all.append(fvalue)
                 
             
-    asm = 0.0
-    for i in range(len(all_score)):
-        pred = regr.predict([all_score[i]])[0]
-        if pred and label_all[i]:
-            asm += 1
-        elif not pred and not label_all[i]:
-            asm += 1
-    return asm/len(all_score)
+    return accuracy_score(label_all, [m > thresh for m in all_score])
 
 
 
@@ -127,28 +130,41 @@ if __name__ == "__main__":
         modelpath = modelsdata[modelname]["path"]
     filename = "WiCOutputs/" + str(k) + "Shot/" + modelname + ".json"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    few = {}
-    few["k"] = k
-    few["words"] = []
-    few["definitions"] = []
-    few["examples"] = []
     adiblen = 1
-    oxford = open("CorpusOxford.json","r").read().splitlines()
+    fewN = {}
+    fewN["k"] = k
+    fewN["words"] = []
+    fewN["definitions"] = []
+    fewN["examples"] = []
+    nouns = open("polysemicNouns.json","r").read().splitlines()
     for i in range(k):
-        line = rd.choice(oxford)
+        line = rd.choice(nouns)
         dataR = json.loads(line)
         examples = dataR["examples"]
         pos = dataR["POS"]
-        while len(examples) <= adiblen or "Circular definition $REF:$" in dataR["definition"] or "Definition not found $REF:$" in dataR["definition"]: 
-            line = rd.choice(oxford)
-            dataR = json.loads(line)
-            examples = dataR["examples"]
         word = dataR["word"]
         definizioa = dataR["definition"]
-        few["words"].append(word)
-        few["definitions"].append(definizioa)
-        few["examples"].append(examples)
-        oxford.remove(line)
+        fewN["words"].append(word)
+        fewN["definitions"].append(definizioa)
+        fewN["examples"].append(examples)
+        nouns.remove(line)
+    fewV = {}
+    fewV["k"] = k
+    fewV["words"] = []
+    fewV["definitions"] = []
+    fewV["examples"] = []
+    verbs = open("polysemicVerbs.json","r").read().splitlines()
+    for i in range(k):
+        line = rd.choice(verbs)
+        dataR = json.loads(line)
+        examples = dataR["examples"]
+        pos = dataR["POS"]
+        word = dataR["word"]
+        definizioa = dataR["definition"]
+        fewV["words"].append(word)
+        fewV["definitions"].append(definizioa)
+        fewV["examples"].append(examples)
+        verbs.remove(line)
     words = []
     sentences1 = []
     sentences2 = []
@@ -166,6 +182,7 @@ if __name__ == "__main__":
     filenameDev = filename[:-5] + "_dev.json"
     filenameTest = filename[:-5] + "_test.json"
     filenameResult = filename[:-5] + "_result.txt"
+
     tokenizer = AutoTokenizer.from_pretrained(modelpath)
     sb = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     pipeline = transformers.pipeline(
@@ -175,8 +192,9 @@ if __name__ == "__main__":
         device_map="auto",
     )
     pipeline.tokenizer.pad_token_id = pipeline.model.config.eos_token_id # Hack to fix a bug in transformers (batch_size)
-    useModels(pipeline,tokenizer,sb,filenameDev,words,sentences1,sentences2,POSs,tags,modelname,few)
-    regr = calculateThrshold(filenameDev)
+    useModels(pipeline,tokenizer,sb,filenameDev,words,sentences1,sentences2,POSs,tags,modelname,fewN, fewV)
+    regrDot = calculateThrshold(filenameDev, "dot")
+    regrDotE = calculateThrshold(filenameDev, "dotE")
     WiC = open("WiC/test/test.data.txt","r").read().splitlines()
     gold = open("WiC/test/test.gold.txt","r").read().splitlines()
     for i in range(len(WiC)):
@@ -186,10 +204,12 @@ if __name__ == "__main__":
         sentences2.append(data["sentence2"])
         POSs.append(data["POS"])
         tags.append(gold[i])    
-    useModels(pipeline,tokenizer,sb,filenameTest,words,sentences1,sentences2,POSs,tags,modelname,few)
-    value = estimate(filenameTest, regr)
+    useModels(pipeline,tokenizer,sb,filenameTest,words,sentences1,sentences2,POSs,tags,modelname,fewN, fewV)
+    dotvalue = estimate(filenameTest, regrDot, "dot")
+    dotvalueE = estimate(filenameTest, regrDotE, "dotE")
     file = open(filenameResult, "w",encoding='utf-8')
-    file.write(str(value))
+    file.write("Definition: " +str(dotvalue) + "\n")
+    file.write("Definition + Context: " +str(dotvalueE) + "\n")
     file.close()
     
     

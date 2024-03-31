@@ -1,10 +1,7 @@
 # Main Scripts:
 ## Baseline: 
-Script: WiCScripts/WiCExamples.py
-Run: WiCScripts/WiCExamples.slurm
-## Definition technique: 
-Script: WiCScripts/processWiC.py
-Run: WiCScripts/processWiC.slurm
-## Definition+Context technique 
-Script: WiCScripts/WiCDefExamples.py
-Run: WiCScripts/WiCDefExamples.slurm
+Script: WiCScripts/baseline.py
+Run: WiCScripts/baseline.slurm
+## Definition/Definition+Context techniques: 
+Script: WiCScripts/LLMsWiC.py
+Run: WiCScripts/LLMsWiC.slurm

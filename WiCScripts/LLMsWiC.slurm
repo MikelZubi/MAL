@@ -10,54 +10,17 @@
 
 source ~/inguruneak/GRAL/bin/activate
 
+huggingface-cli login --token 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
 
-echo "Zephyr"
-srun python WiCScripts/LLMsWiC.py Zephyr 0
-srun python WiCScripts/LLMsWiC.py Zephyr 1
-srun python WiCScripts/LLMsWiC.py Zephyr 2
-srun python WiCScripts/LLMsWiC.py Zephyr 3
-srun python WiCScripts/LLMsWiC.py Zephyr 4
-srun python WiCScripts/LLMsWiC.py Zephyr 5
-srun python WiCScripts/LLMsWiC.py Zephyr 6
-srun python WiCScripts/LLMsWiC.py Zephyr 7
+echo "Llama3"
+srun python WiCScripts/LLMsWiC.py Llama3 0 Oxford
+srun python WiCScripts/LLMsWiC.py Llama3 1 Oxford
+srun python WiCScripts/LLMsWiC.py Llama3 2 Oxford
+srun python WiCScripts/LLMsWiC.py Llama3 3 Oxford
+srun python WiCScripts/LLMsWiC.py Llama3 4 Oxford
+srun python WiCScripts/LLMsWiC.py Llama3 5 Oxford
 
-echo "MistralDPO"
-srun python WiCScripts/LLMsWiC.py Mistral 0
-srun python WiCScripts/LLMsWiC.py Mistral 1
-srun python WiCScripts/LLMsWiC.py Mistral 2
-srun python WiCScripts/LLMsWiC.py Mistral 3
-srun python WiCScripts/LLMsWiC.py Mistral 4
-srun python WiCScripts/LLMsWiC.py Mistral 5
-srun python WiCScripts/LLMsWiC.py Mistral 6
-srun python WiCScripts/LLMsWiC.py Mistral 7
-
-echo "MistralDPO"
-srun python WiCScripts/LLMsWiC.py MistralDPO 0
-srun python WiCScripts/LLMsWiC.py MistralDPO 1
-srun python WiCScripts/LLMsWiC.py MistralDPO 2
-srun python WiCScripts/LLMsWiC.py MistralDPO 3
-srun python WiCScripts/LLMsWiC.py MistralDPO 4
-srun python WiCScripts/LLMsWiC.py MistralDPO 5
-srun python WiCScripts/LLMsWiC.py MistralDPO 6
-srun python WiCScripts/LLMsWiC.py MistralDPO 7
+python WiCScripts/makeTable.py Oxford
+ 
 
 
-echo "Llama2"
-srun python WiCScripts/LLMsWiC.py Llama2 0
-srun python WiCScripts/LLMsWiC.py Llama2 1
-srun python WiCScripts/LLMsWiC.py Llama2 2
-srun python WiCScripts/LLMsWiC.py Llama2 3
-srun python WiCScripts/LLMsWiC.py Llama2 4
-srun python WiCScripts/LLMsWiC.py Llama2 5
-srun python WiCScripts/LLMsWiC.py Llama2 6
-srun python WiCScripts/LLMsWiC.py Llama2 7
-
-echo "OpenChat"
-srun python WiCScripts/LLMsWiC.py OpenChat 0
-srun python WiCScripts/LLMsWiC.py OpenChat 1
-srun python WiCScripts/LLMsWiC.py OpenChat 2
-srun python WiCScripts/LLMsWiC.py OpenChat 3
-srun python WiCScripts/LLMsWiC.py OpenChat 4
-srun python WiCScripts/LLMsWiC.py OpenChat 5
-srun python WiCScripts/LLMsWiC.py OpenChat 6
-srun python WiCScripts/LLMsWiC.py OpenChat 7

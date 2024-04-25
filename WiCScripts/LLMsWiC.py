@@ -21,13 +21,15 @@ def random_line(fname):
 def testModels(word, example1, example2, POS, tag, pipeline, tokenizer, sb, file, modelname, fewN, fewV):
 
     prompt1 = generate_promptV2(modelname,tokenizer,word,example1, POS, fewN, fewV)
-    prompt2 = generate_promptV2(modelname,tokenizer,word,example2, POS, fewN, fewV)        
+    prompt2 = generate_promptV2(modelname,tokenizer,word,example2, POS, fewN, fewV)      
+    terminators = [
+    pipeline.tokenizer.eos_token_id,
+    pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")]  
     sequences = pipeline(
         [prompt1,prompt2],
         do_sample=True,
-        top_k=10,
         num_return_sequences=1,
-        eos_token_id=tokenizer.eos_token_id,
+        eos_token_id=terminators,
         max_new_tokens=140,
         batch_size = 2
     )
@@ -125,6 +127,10 @@ if __name__ == "__main__":
     rd.seed(16)
     modelname = sys.argv[1]
     k = int(sys.argv[2])
+    if sys.argv[3] == "WN":
+        fewpath = "WN"
+    else:
+        fewpath = ""
     with open("modelsData.json", "r") as jsonfile:
         modelsdata = json.load(jsonfile)
         modelpath = modelsdata[modelname]["path"]
@@ -136,7 +142,7 @@ if __name__ == "__main__":
     fewN["words"] = []
     fewN["definitions"] = []
     fewN["examples"] = []
-    nouns = open("polysemicNouns.json","r").read().splitlines()
+    nouns = open("polysemicNouns"+fewpath+".json","r").read().splitlines()
     for i in range(k):
         line = rd.choice(nouns)
         dataR = json.loads(line)
@@ -153,7 +159,7 @@ if __name__ == "__main__":
     fewV["words"] = []
     fewV["definitions"] = []
     fewV["examples"] = []
-    verbs = open("polysemicVerbs.json","r").read().splitlines()
+    verbs = open("polysemicVerbs"+fewpath+".json","r").read().splitlines()
     for i in range(k):
         line = rd.choice(verbs)
         dataR = json.loads(line)
@@ -179,9 +185,9 @@ if __name__ == "__main__":
         sentences2.append(data["sentence2"])
         POSs.append(data["POS"])
         tags.append(gold[i])
-    filenameDev = filename[:-5] + "_dev.json"
-    filenameTest = filename[:-5] + "_test.json"
-    filenameResult = filename[:-5] + "_result.txt"
+    filenameDev = filename[:-5] + "_dev"+fewpath+".json"
+    filenameTest = filename[:-5] + "_test"+fewpath+".json"
+    filenameResult = filename[:-5] + "_result"+fewpath+".txt"
 
     tokenizer = AutoTokenizer.from_pretrained(modelpath)
     sb = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')

@@ -1,8 +1,13 @@
 import os
 import csv
+import sys
 
-shots = [0,1,2,3,4,5,6,7]
-models = ["Llama2", "Mistral", "MistralDPO", "ZephyrB", "OpenChat"]
+if sys.argv[1] == "WN":
+    fewpath = "WN"
+else:
+    fewpath = ""
+shots = [0,1,2,3,4,5]
+models = ["Llama2", "Mistral", "MistralDPO", "Zephyr", "OpenChat", "Starling", "Llama3"]
 # Create a list to store the results
 results = []
 
@@ -17,7 +22,7 @@ for shot in shots:
     # Iterate over the models
     for model in models:
         # Find the file that has the model name and "_results.txt" in the folder
-        file_name = f"{model}_result.txt"
+        file_name = f"{model}_result"+fewpath+".txt"
         file_path = None
         if os.path.isfile(os.path.join(folder_path, file_name)):
             file_path = os.path.join(folder_path, file_name)
@@ -35,12 +40,14 @@ for shot in shots:
     print(results)
 
 # Save the results to a CSV file
-csv_file = "WiCOutputs/definition.csv"
+csv_file = "WiCOutputs/definition"+fewpath+".csv"
 fieldnames = ["Shot"] + models
 with open(csv_file, "w", newline="") as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(results)
+
+results.clear()
 
 # Iterate over the shots
 for shot in shots:
@@ -53,7 +60,7 @@ for shot in shots:
     # Iterate over the models
     for model in models:
         # Find the file that has the model name and "_results.txt" in the folder
-        file_name = f"{model}_result.txt"
+        file_name = f"{model}_result"+fewpath+".txt"
         file_path = None
         if os.path.isfile(os.path.join(folder_path, file_name)):
             file_path = os.path.join(folder_path, file_name)
@@ -71,7 +78,7 @@ for shot in shots:
     print(results)
 
 # Save the results to a CSV file
-csv_file = "WiCOutputs/definition+Context.csv"
+csv_file = "WiCOutputs/definition+Context"+fewpath+".csv"
 fieldnames = ["Shot"] + models
 with open(csv_file, "w", newline="") as file:
     writer = csv.DictWriter(file, fieldnames=fieldnames)

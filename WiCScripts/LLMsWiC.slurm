@@ -10,8 +10,7 @@
 
 source ~/inguruneak/GRAL/bin/activate
 
-huggingface-cli login --token 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
-
+huggingface-cli login --token $(cat tokenHF.txt)
 echo "Llama3"
 srun python WiCScripts/LLMsWiC.py Llama3 0 Oxford
 srun python WiCScripts/LLMsWiC.py Llama3 1 Oxford

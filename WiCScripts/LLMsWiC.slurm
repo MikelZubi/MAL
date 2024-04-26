@@ -10,7 +10,7 @@
 
 source ~/inguruneak/GRAL/bin/activate
 
-huggingface-cli login --token
+huggingface-cli login --token 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
 
 echo "Llama3"
 srun python WiCScripts/LLMsWiC.py Llama3 0 Oxford
